@@ -1,23 +1,15 @@
 body {
     font-family: Arial, sans-serif;
 }
-
 nav {
-    margin-bottom: 20px;
+    margin: 20px;
 }
-
-nav a {
-    margin-right: 15px;
+a {
+    margin: 0 10px;
     text-decoration: none;
-    color: blue;
 }
-
 .card {
-    border: 1px solid #ccc;
+    border: 1px solid #cacaca;
     padding: 10px;
-    margin: 10px;
-}
-
-.hidden {
-    display: none;
+    margin: 10px 0;
 }

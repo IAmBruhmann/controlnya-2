@@ -1,68 +1,53 @@
-const API_URL = ''; 
-let currentPage = localStorage.getItem('currentPage') || 'products';
+const API_BASE_URL = 'https://api.example.com/';
+let pageIndex = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadPage(currentPage);
+    const lastPage = localStorage.getItem('lastPage') || 'products';
+    loadPage(lastPage);
 
-    document.getElementById('products-link').addEventListener('click', () => loadPage('products'));
-    document.getElementById('categories-link').addEventListener('click', () => loadPage('categories'));
-    document.getElementById('users-link').addEventListener('click', () => loadPage('users'));
+    window.addEventListener('hashchange', () => {
+        const page = location.hash.slice(1) || 'products';
+        loadPage(page);
+    });
 });
 
-async function loadPage(page) {
-    localStorage.setItem('currentPage', page);
-    const contentDiv = document.getElementById('content');
-    contentDiv.innerHTML = '';
+function loadPage(page) {
+    localStorage.setItem('lastPage', page);
+    pageIndex = 0;
+    fetchData(page);
+}
 
-    let data;
-    if (page === 'products') {
-        data = await fetchData($,{API_URL}/products);
-    } else if (page === 'categories') {
-        data = await fetchData($,{API_URL}/categories);
-    } else if (page === 'users') {
-        data = await fetchData($,{API_URL}/users);
+function fetchData(page) {
+    fetch(`${API_BASE_URL}${page}`)
+        .then(response => response.json())
+        .then(data => renderData(data, page))
+        .catch(error => console.error(error));
+}
+
+function renderData(data, page) {
+    const content = document.getElementById('content');
+    content.innerHTML = '';
+    
+    const cards = data.slice(pageIndex, pageIndex + 4).map(item => `
+        <div class="card">
+            <h3>${item.name}</h3>
+            <p>${item.description}</p>
+        </div>
+    `).join('');
+    
+    content.innerHTML = cards;
+
+    if (data.length > 4) {
+        const showMoreBtn = document.createElement('button');
+        showMoreBtn.textContent = 'Показать еще';
+        content.appendChild(showMoreBtn);
+
+        showMoreBtn.onclick = () => {
+            pageIndex += 4;
+            renderData(data, page);
+            if (pageIndex >= data.length) {
+                showMoreBtn.style.display = 'none';
+            }
+        };
     }
-
-    renderCards(data);
-}
-
-async function fetchData(url) {
-    const response = await fetch(url);
-    return await response.json();
-}
-
-function renderCards(data) {
-    const contentDiv = document.getElementById('content');
-    
-    let displayedCount = 4;
-    
-    const render = (count) => {
-        contentDiv.innerHTML = ''; // Очистить контент
-        const cards = data.slice(0, count).map(item => 
-            <div class="card">
-                <h3>${item.name}</h3>
-                <p>${item.description}</p>
-            </div>
-        ).join('');
-        contentDiv.innerHTML += cards;
-
-        if (data.length > count) {
-            const showMoreButton = document.createElement('button');
-            showMoreButton.textContent = 'Показать еще';
-            showMoreButton.onclick = () => {
-                displayedCount += 4;
-                render(displayedCount);
-            };
-            contentDiv.appendChild(showMoreButton);
-        }
-
-        if (displayedCount >= data.length) {
-            const hideButton = document.createElement('button');
-            hideButton.textContent = 'Скрыть';
-            hideButton.onclick = () => render(4);
-            contentDiv.appendChild(hideButton);
-        }
-    };
-
-    render(displayedCount);
 }
